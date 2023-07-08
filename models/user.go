@@ -11,7 +11,7 @@ import (
 )
 
 type User struct {
-	gorm.Model
+	BaseModel
 	Email       string         `gorm:"size:255;not null;unique" json:"email"`
 	Password    string         `gorm:"size:255;not null;" json:"password"`
 	FirstName   string         `gorm:"size:20;not null;" json:"firstName"`

@@ -4,11 +4,18 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
+
+type BaseModel struct {
+	ID        uint      `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
 
 func ConnectDataBase() *gorm.DB {
 
@@ -36,7 +43,7 @@ func ConnectDataBase() *gorm.DB {
 		fmt.Println("We are connected to the database ", Dbdriver)
 	}
 
-	db.AutoMigrate(&User{})
+	db.AutoMigrate(&User{}, &Todo{})
 
 	return db
 }
