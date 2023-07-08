@@ -16,6 +16,7 @@ func main() {
 
 	authController := controllers.AuthController{Db: db}
 	public.POST("/register", authController.Register)
+	public.POST("/login", authController.Login)
 
 	r.Run(":8080")
 

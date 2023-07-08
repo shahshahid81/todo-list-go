@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 
+	"github.com/shahshahid81/todo-list-go/utils"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
@@ -16,6 +17,33 @@ type User struct {
 	FirstName   string         `gorm:"size:20;not null;" json:"firstName"`
 	LastName    string         `gorm:"size:20;not null;" json:"lastName"`
 	DateOfBirth datatypes.Date `gorm:"not null;" json:"dateOfBirth"`
+}
+
+func LoginCheck(db *gorm.DB, email string, password string) (string, error) {
+	u := User{}
+	var err error
+	err = db.Model(User{}).Where("email = ?", email).Take(&u).Error
+	if err != nil {
+		return "", err
+	}
+
+	err = VerifyPassword(password, u.Password)
+
+	if err != nil {
+		return "", err
+	}
+
+	token, err := utils.GenerateToken(u.ID)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+
+}
+
+func VerifyPassword(password, hashedPassword string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
 func (u *User) String() string {

@@ -23,6 +23,11 @@ type RegisterInput struct {
 	DateOfBirth     utils.IsoDate `json:"dateOfBirth" binding:"required" time_format:"2006-01-02"`
 }
 
+type LoginInput struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=8,max=24"`
+}
+
 func (ac *AuthController) Register(c *gin.Context) {
 
 	var requestBody RegisterInput
@@ -48,4 +53,23 @@ func (ac *AuthController) Register(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "registration success"})
+}
+
+func (ac *AuthController) Login(c *gin.Context) {
+
+	var requestBody LoginInput
+
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	token, err := models.LoginCheck(ac.Db, requestBody.Email, requestBody.Password)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "email or password is incorrect."})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }
