@@ -9,15 +9,19 @@ import (
 	"gorm.io/gorm"
 )
 
-type CreatePost struct {
+type CreateTodo struct {
 	Title       string `json:"title" binding:"required,min=3,max=30"`
 	Description string `json:"description" binding:"required,min=10,max=255"`
 }
 
-type UpdatePost struct {
-	PostId      uint   `json:"postId" binding:"required"`
+type UpdateTodo struct {
+	Id          uint   `json:"id" binding:"required"`
 	Title       string `json:"title,omitempty" binding:"omitempty,min=3,max=30"`
 	Description string `json:"description,omitempty" binding:"omitempty,min=10,max=255"`
+}
+
+type DeleteTodo struct {
+	Id string `uri:"id" binding:"required"`
 }
 
 type TodoController struct {
@@ -53,7 +57,7 @@ func (tc *TodoController) Create(c *gin.Context) {
 		return
 	}
 
-	var requestBody CreatePost
+	var requestBody CreateTodo
 
 	if err := c.ShouldBindJSON(&requestBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -85,7 +89,7 @@ func (tc *TodoController) Update(c *gin.Context) {
 		return
 	}
 
-	var requestBody UpdatePost
+	var requestBody UpdateTodo
 
 	if err := c.ShouldBindJSON(&requestBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -103,12 +107,36 @@ func (tc *TodoController) Update(c *gin.Context) {
 		updateBody["Title"] = requestBody.Title
 	}
 
-	result := tc.Db.Model(&todo).Where("user_id = ? and id = ?", userId, requestBody.PostId).Updates(updateBody)
+	result := tc.Db.Model(&todo).Where("user_id = ? and id = ?", userId, requestBody.Id).Updates(updateBody)
 
 	if result.Error != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": result.Error})
 	} else {
-		c.JSON(http.StatusCreated, gin.H{"message": "todo updated successfully"})
+		c.JSON(http.StatusAccepted, gin.H{"message": "todo updated successfully"})
+	}
+
+}
+
+func (tc *TodoController) Delete(c *gin.Context) {
+
+	userId, err := utils.ExtractUserIdFromToken(c)
+
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "an error occured"})
+		return
+	}
+	var requestParams DeleteTodo
+	if err := c.ShouldBindUri(&requestParams); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	result := tc.Db.Model(&models.Todo{}).Delete("user_id = ? and id = ?", userId, requestParams.Id)
+
+	if result.Error != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": result.Error})
+	} else {
+		c.JSON(http.StatusAccepted, gin.H{"message": "todo deleted successfully"})
 	}
 
 }

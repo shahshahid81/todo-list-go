@@ -24,6 +24,7 @@ func main() {
 	todoGroup.GET("/", todoController.GetAll)
 	todoGroup.POST("/", todoController.Create)
 	todoGroup.PUT("/", todoController.Update)
+	todoGroup.DELETE("/:id", todoController.Delete)
 
 	r.Run(":8080")
 
