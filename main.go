@@ -23,6 +23,7 @@ func main() {
 	todoGroup.Use(middlewares.JwtAuthMiddleware())
 	todoGroup.GET("/", todoController.GetAll)
 	todoGroup.POST("/", todoController.Create)
+	todoGroup.PUT("/", todoController.Update)
 
 	r.Run(":8080")
 
